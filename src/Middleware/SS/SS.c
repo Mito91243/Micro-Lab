@@ -3,10 +3,10 @@
 ST_SS_MUX Mux;
 
 void InitMux () {
-    ST_SS_letters SevenSeg = {{EN_PORTA, 11},{EN_PORTA, 8},{EN_PORTB, 15},{EN_PORTB, 14},{EN_PORTB, 13},{EN_PORTB, 12},{EN_PORTA, 12},{EN_PORTB, 8},0};
-    ST_PORT_PIN Seg1 = {EN_PORTB, 3};
+    ST_SS_letters SevenSeg = {{EN_PORTA, 15},{EN_PORTA, 11},{EN_PORTA, 8},{EN_PORTB, 15},{EN_PORTB, 14},{EN_PORTB, 13},{EN_PORTB, 12},{EN_PORTA, 12},{EN_PORTB, 8},0};
+    ST_PORT_PIN Seg1 = {EN_PORTB, 8};
     ST_PORT_PIN Seg2 = {EN_PORTB, 8};
-    ST_PORT_PIN Seg3 = {EN_PORTB, 9};
+    ST_PORT_PIN Seg3 = {EN_PORTB, 3};
     ST_SS_letters x = InitSevenSegmment(SevenSeg,Seg1);
     ST_SS_letters y = InitSevenSegmment(SevenSeg,Seg2);
     ST_SS_letters z = InitSevenSegmment(SevenSeg,Seg3);
@@ -16,7 +16,7 @@ void InitMux () {
 
 ST_SS_letters InitSevenSegmment(ST_SS_letters seg,ST_PORT_PIN COM) {
     seg.COM = COM;
-    // Configure each segment pin as output
+    CONF_GPIO(seg.DOT, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.A, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.B, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.C, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
@@ -42,9 +42,9 @@ void Disp_Num(uint16_t number) {
         GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
         GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
         GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, HIGH);
-        uint16_t digit1 = number / 100;         // Hundreds place
-        uint16_t digit2 = (number / 10) % 10;   // Tens place
-        uint16_t digit3 = number % 10;          // Units place
+        uint16_t digit1 = number / 100;         
+        uint16_t digit2 = (number / 10) % 10;   
+        uint16_t digit3 = number % 10;          
         Disp_SS(Mux.Seg1,digit1);
         Disp_SS(Mux.Seg2,digit2);
         Disp_SS(Mux.Seg2,digit3);        
