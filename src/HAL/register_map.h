@@ -1,0 +1,26 @@
+#ifndef __REGISTER_MAP_H__
+#define __REGISTER_MAP_H__
+
+#define PERIPH_BASE        ((uint32_t)0x40000000UL)
+#define APB1_PERIPH_BASE   PERIPH_BASE
+#define APB2_PERIPH_BASE   (PERIPH_BASE + 0x00010000UL)
+#define AHB_PERIPH_BASE    (PERIPH_BASE + 0x00020000UL)
+#define CORE_PERIPH_BASE   ((uint32_t)0xE000E000UL)
+
+#define SYSTICK_OFFSET     (0x10UL)
+#define SYSTICK_BASE       (CORE_PERIPH_BASE + SYSTICK_OFFSET)
+
+#define GPIO_A_OFFSET      (0x0800UL)
+#define GPIO_B_OFFSET      (0x0C00UL)
+#define GPIO_C_OFFSET      (0x1000UL)
+#define GPIO_D_OFFSET      (0x1400UL)
+
+#define GPIO_A_BASE        (APB2_PERIPH_BASE + GPIO_A_OFFSET)
+#define GPIO_B_BASE        (APB2_PERIPH_BASE + GPIO_B_OFFSET)
+#define GPIO_C_BASE        (0x40011000)
+#define GPIO_D_BASE        (APB2_PERIPH_BASE + GPIO_D_OFFSET)
+
+#define RCC_OFFSET         (0x1000UL)
+#define RCC_BASE           (AHB_PERIPH_BASE + RCC_OFFSET)
+
+#endif

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "SS.C": "cpp",
+        "app.h": "c",
+        "led.h": "c"
+    }
+}
