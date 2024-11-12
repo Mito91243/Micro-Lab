@@ -1,16 +1,10 @@
 #ifndef __SS_H__
 #define __SS_H__
 #include "../../HAL/GPIO/gpio.h"
-/*
-typedef enum
-{
-    LED_SWITCH_INVERTED,
-    LED_SWITCH_NORMAL
-} EN_LED_SWITCH_INV;
-*/
 
 typedef struct 
 {
+    ST_PORT_PIN DOT;
     ST_PORT_PIN A;
     ST_PORT_PIN B; 
     ST_PORT_PIN C;
