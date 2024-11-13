@@ -1,5 +1,5 @@
-#ifndef __SS_H__
-#define __SS_H__
+#ifndef _SS_H_
+#define _SS_H_
 #include "../../HAL/GPIO/gpio.h"
 
 typedef struct 
@@ -21,12 +21,15 @@ typedef struct
     ST_SS_letters Seg1;
     ST_SS_letters Seg2;
     ST_SS_letters Seg3;
-    uint8_t timer;
     uint16_t totalvalue;
+    uint8_t not_hundredth;
 } ST_SS_MUX;
 
-ST_SS_letters InitSevenSegmment(ST_SS_letters seg,ST_PORT_PIN x);
+ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN x);
 void Disp_Num(uint16_t number);
-void Disp_SS(ST_SS_letters seg,uint16_t number);
+void Disp_SS(ST_SS_letters seg, uint16_t number);
 void InitMux(void);
+void Data_Show(void); 
+void Delay_ms(uint32_t ms); 
+
 #endif

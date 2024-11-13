@@ -2,19 +2,19 @@
 
 ST_SS_MUX Mux;
 
-void InitMux () {
-    ST_SS_letters SevenSeg = {{EN_PORTA, 15},{EN_PORTA, 11},{EN_PORTA, 8},{EN_PORTB, 15},{EN_PORTB, 14},{EN_PORTB, 13},{EN_PORTB, 12},{EN_PORTA, 12},{EN_PORTB, 8},0};
+void InitMux() {
+    ST_SS_letters SevenSeg = {{EN_PORTA, 15}, {EN_PORTA, 11}, {EN_PORTA, 8}, {EN_PORTB, 15}, {EN_PORTB, 14}, {EN_PORTB, 13}, {EN_PORTB, 12}, {EN_PORTA, 12}, 0};
     ST_PORT_PIN Seg1 = {EN_PORTB, 8};
-    ST_PORT_PIN Seg2 = {EN_PORTB, 8};
+    ST_PORT_PIN Seg2 = {EN_PORTB, 9};
     ST_PORT_PIN Seg3 = {EN_PORTB, 3};
-    ST_SS_letters x = InitSevenSegmment(SevenSeg,Seg1);
-    ST_SS_letters y = InitSevenSegmment(SevenSeg,Seg2);
-    ST_SS_letters z = InitSevenSegmment(SevenSeg,Seg3);
-    ST_SS_MUX tempmux = {x,y,z,0,0};
+    ST_SS_letters x = InitSevenSegmment(SevenSeg, Seg1);
+    ST_SS_letters y = InitSevenSegmment(SevenSeg, Seg2);
+    ST_SS_letters z = InitSevenSegmment(SevenSeg, Seg3);
+    ST_SS_MUX tempmux = {x, y, z, 0, 0};
     Mux = tempmux;
 }
 
-ST_SS_letters InitSevenSegmment(ST_SS_letters seg,ST_PORT_PIN COM) {
+ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN COM) {
     seg.COM = COM;
     CONF_GPIO(seg.DOT, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.A, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
@@ -30,31 +30,16 @@ ST_SS_letters InitSevenSegmment(ST_SS_letters seg,ST_PORT_PIN COM) {
 
 void Disp_Num(uint16_t number) {
     Mux.totalvalue = number;
-    if (number < 10) {
-        GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
-        Disp_SS(Mux.Seg1,number);
-    } else if (number < 100 && number >= 10) {
-        GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
-        GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
-        Disp_SS(Mux.Seg1,number/10);
-        Disp_SS(Mux.Seg2,number%10);        
-    } else if(number < 1000 && number >= 100) {
-        GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
-        GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
-        GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, HIGH);
-        uint16_t digit1 = number / 100;         
-        uint16_t digit2 = (number / 10) % 10;   
-        uint16_t digit3 = number % 10;          
-        Disp_SS(Mux.Seg1,digit1);
-        Disp_SS(Mux.Seg2,digit2);
-        Disp_SS(Mux.Seg2,digit3);        
+    while (1) {
+        Data_Show(); // Call the timer ISR to update the display
+        Delay_ms(5); // Add a delay to control the refresh rate
     }
 }
 
-void Disp_SS(ST_SS_letters seg,uint16_t number) {
-        // Function to set the segments High or Low based on the input number
+void Disp_SS(ST_SS_letters seg, uint16_t number) {
+    // Function to set the segments High or Low based on the input number
     // Assume HIGH and LOW are defined appropriately
-    switch(number) {
+    switch (number) {
         case 0:
             // Segments A, B, C, D, E, F are HIGH; G is LOW
             GPIO_OUTPUT_LEVEL(seg.A, HIGH);
@@ -167,4 +152,58 @@ void Disp_SS(ST_SS_letters seg,uint16_t number) {
             break;
     }
     seg.value = number;
+}
+
+void Data_Show() {
+    static uint8_t current_seg = 0;
+    uint8_t not_hundredth = 0;
+    uint16_t number = Mux.totalvalue;
+    uint16_t digit1 = number / 100;         // Hundreds place
+    uint16_t digit2 = (number / 10) % 10;   // Tens place
+    uint16_t digit3 = number % 10;          // Units place
+    if( digit1 == 0 ){
+       not_hundredth = 1;
+    }
+    // Turn off all segments
+    GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, LOW);
+
+    // Display the current digit
+    switch (current_seg) {
+        case 0:
+            GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
+            if ( not_hundredth == 1 ){
+            Disp_SS(Mux.Seg1, digit2);
+            break;
+            }  
+            Disp_SS(Mux.Seg1, digit1);
+            break;
+        case 1:
+            GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
+         if ( not_hundredth == 1 ){
+            Disp_SS(Mux.Seg2, digit3);
+            break;
+         }
+            
+            Disp_SS(Mux.Seg2, digit2);
+            break;
+        case 2:
+            GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, HIGH);
+        if ( not_hundredth == 1 ){
+            break;
+        }
+
+            Disp_SS(Mux.Seg3, digit3);
+            break;
+    }
+
+    current_seg = (current_seg + 1) % 3;
+}
+
+void Delay_ms(uint32_t ms) {
+
+    for (uint32_t i = 0; i < ms * 1000; i++) {
+        __asm("nop"); 
+    }
 }
