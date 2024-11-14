@@ -2,8 +2,9 @@
 
 ST_SS_MUX Mux;
 
-void InitMux() {
-    ST_SS_letters SevenSeg = {{EN_PORTA, 15}, {EN_PORTA, 11}, {EN_PORTA, 8}, {EN_PORTB, 15}, {EN_PORTB, 14}, {EN_PORTB, 13}, {EN_PORTB, 12}, {EN_PORTA, 12}, 0};
+void InitMux()
+{
+    ST_SS_letters SevenSeg = {{EN_PORTA, 15}, {EN_PORTA, 11}, {EN_PORTA, 8}, {EN_PORTB, 15}, {EN_PORTB, 14}, {EN_PORTB, 13}, {EN_PORTB, 12}, {EN_PORTA, 12}, {EN_PORTA, 15},0};
     ST_PORT_PIN Seg1 = {EN_PORTB, 8};
     ST_PORT_PIN Seg2 = {EN_PORTB, 9};
     ST_PORT_PIN Seg3 = {EN_PORTB, 3};
@@ -14,7 +15,8 @@ void InitMux() {
     Mux = tempmux;
 }
 
-ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN COM) {
+ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN COM)
+{
     seg.COM = COM;
     CONF_GPIO(seg.DOT, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.A, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
@@ -28,141 +30,183 @@ ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN COM) {
     return seg;
 }
 
-void Disp_Num(uint16_t number) {
+void Disp_Num(uint16_t number)
+{
     Mux.totalvalue = number;
-    while (1) {
+    while (1)
+    {
         Data_Show(); // Call the timer ISR to update the display
         Delay_ms(5); // Add a delay to control the refresh rate
     }
 }
+void Disp_Float(float32_t number)
+{
+    // Separate integer and fractional parts of the float
+    uint8_t integer_part = (uint8_t)number;
+    uint8_t fractional_part = (uint8_t)((number - integer_part) * 10); // Get one decimal place
 
-void Disp_SS(ST_SS_letters seg, uint16_t number) {
-    // Function to set the segments High or Low based on the input number
-    // Assume HIGH and LOW are defined appropriately
-    switch (number) {
+    GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, LOW);
+
+    while (1)
+    {
+        static uint8_t current_seg = 0;
+
+        // Turn off all segments
+        GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, LOW);
+        GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, LOW);
+
+        // Display the current digit with decimal handling
+        switch (current_seg)
+        {
         case 0:
-            // Segments A, B, C, D, E, F are HIGH; G is LOW
-            GPIO_OUTPUT_LEVEL(seg.A, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.B, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.E, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.F, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.G, LOW);
+            GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
+            Disp_SS(Mux.Seg1, integer_part); // Display integer part on first segment
+            GPIO_OUTPUT_LEVEL(Mux.Seg1.DOT, HIGH);
+     // Set decimal point after integer part
             break;
         case 1:
-            // Segments B, C are HIGH; others are LOW
-            GPIO_OUTPUT_LEVEL(seg.A, LOW);
-            GPIO_OUTPUT_LEVEL(seg.B, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, LOW);
-            GPIO_OUTPUT_LEVEL(seg.E, LOW);
-            GPIO_OUTPUT_LEVEL(seg.F, LOW);
-            GPIO_OUTPUT_LEVEL(seg.G, LOW);
+            GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
+            Disp_SS(Mux.Seg2, fractional_part); // Display fractional part on second segment
             break;
-        case 2:
-            // Segments A, B, D, E, G are HIGH; C, F are LOW
-            GPIO_OUTPUT_LEVEL(seg.A, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.B, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.C, LOW);
-            GPIO_OUTPUT_LEVEL(seg.D, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.E, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.F, LOW);
-            GPIO_OUTPUT_LEVEL(seg.G, HIGH);
-            break;
-        case 3:
-            // Segments A, B, C, D, G are HIGH; E, F are LOW
-            GPIO_OUTPUT_LEVEL(seg.A, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.B, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.E, LOW);
-            GPIO_OUTPUT_LEVEL(seg.F, LOW);
-            GPIO_OUTPUT_LEVEL(seg.G, HIGH);
-            break;
-        case 4:
-            // Segments B, C, F, G are HIGH; A, D, E are LOW
-            GPIO_OUTPUT_LEVEL(seg.A, LOW);
-            GPIO_OUTPUT_LEVEL(seg.B, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, LOW);
-            GPIO_OUTPUT_LEVEL(seg.E, LOW);
-            GPIO_OUTPUT_LEVEL(seg.F, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.G, HIGH);
-            break;
-        case 5:
-            // Segments A, C, D, F, G are HIGH; B, E are LOW
-            GPIO_OUTPUT_LEVEL(seg.A, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.B, LOW);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.E, LOW);
-            GPIO_OUTPUT_LEVEL(seg.F, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.G, HIGH);
-            break;
-        case 6:
-            // Segments A, C, D, E, F, G are HIGH; B is LOW
-            GPIO_OUTPUT_LEVEL(seg.A, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.B, LOW);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.E, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.F, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.G, HIGH);
-            break;
-        case 7:
-            // Segments A, B, C are HIGH; D, E, F, G are LOW
-            GPIO_OUTPUT_LEVEL(seg.A, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.B, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, LOW);
-            GPIO_OUTPUT_LEVEL(seg.E, LOW);
-            GPIO_OUTPUT_LEVEL(seg.F, LOW);
-            GPIO_OUTPUT_LEVEL(seg.G, LOW);
-            break;
-        case 8:
-            // All segments are HIGH
-            GPIO_OUTPUT_LEVEL(seg.A, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.B, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.E, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.F, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.G, HIGH);
-            break;
-        case 9:
-            // Segments A, B, C, D, F, G are HIGH; E is LOW
-            GPIO_OUTPUT_LEVEL(seg.A, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.B, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.C, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.D, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.E, LOW);
-            GPIO_OUTPUT_LEVEL(seg.F, HIGH);
-            GPIO_OUTPUT_LEVEL(seg.G, HIGH);
-            break;
-        default:
-            // Turn off all segments
-            GPIO_OUTPUT_LEVEL(seg.A, LOW);
-            GPIO_OUTPUT_LEVEL(seg.B, LOW);
-            GPIO_OUTPUT_LEVEL(seg.C, LOW);
-            GPIO_OUTPUT_LEVEL(seg.D, LOW);
-            GPIO_OUTPUT_LEVEL(seg.E, LOW);
-            GPIO_OUTPUT_LEVEL(seg.F, LOW);
-            GPIO_OUTPUT_LEVEL(seg.G, LOW);
-            break;
+        }
+
+        current_seg = (current_seg + 1) % 2;
+        Delay_ms(5); // Add a delay to control the refresh rate
+    }
+}
+
+void Disp_SS(ST_SS_letters seg, uint16_t number)
+{
+    // Function to set the segments High or Low based on the input number
+    // Assume HIGH and LOW are defined appropriately
+    switch (number)
+    {
+    case 0:
+        // Segments A, B, C, D, E, F are HIGH; G is LOW
+        GPIO_OUTPUT_LEVEL(seg.A, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.B, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.E, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.F, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.G, LOW);
+        break;
+    case 1:
+        // Segments B, C are HIGH; others are LOW
+        GPIO_OUTPUT_LEVEL(seg.A, LOW);
+        GPIO_OUTPUT_LEVEL(seg.B, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, LOW);
+        GPIO_OUTPUT_LEVEL(seg.E, LOW);
+        GPIO_OUTPUT_LEVEL(seg.F, LOW);
+        GPIO_OUTPUT_LEVEL(seg.G, LOW);
+        break;
+    case 2:
+        // Segments A, B, D, E, G are HIGH; C, F are LOW
+        GPIO_OUTPUT_LEVEL(seg.A, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.B, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.C, LOW);
+        GPIO_OUTPUT_LEVEL(seg.D, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.E, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.F, LOW);
+        GPIO_OUTPUT_LEVEL(seg.G, HIGH);
+        break;
+    case 3:
+        // Segments A, B, C, D, G are HIGH; E, F are LOW
+        GPIO_OUTPUT_LEVEL(seg.A, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.B, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.E, LOW);
+        GPIO_OUTPUT_LEVEL(seg.F, LOW);
+        GPIO_OUTPUT_LEVEL(seg.G, HIGH);
+        break;
+    case 4:
+        // Segments B, C, F, G are HIGH; A, D, E are LOW
+        GPIO_OUTPUT_LEVEL(seg.A, LOW);
+        GPIO_OUTPUT_LEVEL(seg.B, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, LOW);
+        GPIO_OUTPUT_LEVEL(seg.E, LOW);
+        GPIO_OUTPUT_LEVEL(seg.F, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.G, HIGH);
+        break;
+    case 5:
+        // Segments A, C, D, F, G are HIGH; B, E are LOW
+        GPIO_OUTPUT_LEVEL(seg.A, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.B, LOW);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.E, LOW);
+        GPIO_OUTPUT_LEVEL(seg.F, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.G, HIGH);
+        break;
+    case 6:
+        // Segments A, C, D, E, F, G are HIGH; B is LOW
+        GPIO_OUTPUT_LEVEL(seg.A, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.B, LOW);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.E, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.F, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.G, HIGH);
+        break;
+    case 7:
+        // Segments A, B, C are HIGH; D, E, F, G are LOW
+        GPIO_OUTPUT_LEVEL(seg.A, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.B, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, LOW);
+        GPIO_OUTPUT_LEVEL(seg.E, LOW);
+        GPIO_OUTPUT_LEVEL(seg.F, LOW);
+        GPIO_OUTPUT_LEVEL(seg.G, LOW);
+        break;
+    case 8:
+        // All segments are HIGH
+        GPIO_OUTPUT_LEVEL(seg.A, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.B, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.E, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.F, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.G, HIGH);
+        break;
+    case 9:
+        // Segments A, B, C, D, F, G are HIGH; E is LOW
+        GPIO_OUTPUT_LEVEL(seg.A, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.B, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.C, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.D, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.E, LOW);
+        GPIO_OUTPUT_LEVEL(seg.F, HIGH);
+        GPIO_OUTPUT_LEVEL(seg.G, HIGH);
+        break;
+    default:
+        // Turn off all segments
+        GPIO_OUTPUT_LEVEL(seg.A, LOW);
+        GPIO_OUTPUT_LEVEL(seg.B, LOW);
+        GPIO_OUTPUT_LEVEL(seg.C, LOW);
+        GPIO_OUTPUT_LEVEL(seg.D, LOW);
+        GPIO_OUTPUT_LEVEL(seg.E, LOW);
+        GPIO_OUTPUT_LEVEL(seg.F, LOW);
+        GPIO_OUTPUT_LEVEL(seg.G, LOW);
+        break;
     }
     seg.value = number;
 }
 
-void Data_Show() {
+void Data_Show()
+{
     static uint8_t current_seg = 0;
     uint8_t not_hundredth = 0;
     uint16_t number = Mux.totalvalue;
-    uint16_t digit1 = number / 100;         // Hundreds place
-    uint16_t digit2 = (number / 10) % 10;   // Tens place
-    uint16_t digit3 = number % 10;          // Units place
-    if( digit1 == 0 ){
-       not_hundredth = 1;
+    uint16_t digit1 = number / 100;       // Hundreds place
+    uint16_t digit2 = (number / 10) % 10; // Tens place
+    uint16_t digit3 = number % 10;        // Units place
+    if (digit1 == 0)
+    {
+        not_hundredth = 1;
     }
     // Turn off all segments
     GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, LOW);
@@ -170,40 +214,46 @@ void Data_Show() {
     GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, LOW);
 
     // Display the current digit
-    switch (current_seg) {
-        case 0:
-            GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
-            if ( not_hundredth == 1 ){
+    switch (current_seg)
+    {
+    case 0:
+        GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
+        if (not_hundredth == 1)
+        {
             Disp_SS(Mux.Seg1, digit2);
             break;
-            }  
-            Disp_SS(Mux.Seg1, digit1);
-            break;
-        case 1:
-            GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
-         if ( not_hundredth == 1 ){
+        }
+        Disp_SS(Mux.Seg1, digit1);
+        break;
+    case 1:
+        GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
+        if (not_hundredth == 1)
+        {
             Disp_SS(Mux.Seg2, digit3);
-            break;
-         }
-            
-            Disp_SS(Mux.Seg2, digit2);
-            break;
-        case 2:
-            GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, HIGH);
-        if ( not_hundredth == 1 ){
             break;
         }
 
-            Disp_SS(Mux.Seg3, digit3);
+        Disp_SS(Mux.Seg2, digit2);
+        break;
+    case 2:
+        GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, HIGH);
+        if (not_hundredth == 1)
+        {
             break;
+        }
+
+        Disp_SS(Mux.Seg3, digit3);
+        break;
     }
 
     current_seg = (current_seg + 1) % 3;
 }
 
-void Delay_ms(uint32_t ms) {
+void Delay_ms(uint32_t ms)
+{
 
-    for (uint32_t i = 0; i < ms * 1000; i++) {
-        __asm("nop"); 
+    for (uint32_t i = 0; i < ms * 1000; i++)
+    {
+        __asm("nop");
     }
 }

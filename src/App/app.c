@@ -5,7 +5,8 @@ void APP_Init(void) {
 }
 
 void APP_Loop(void) {
-    Disp_Num(3);
+    //Disp_Num(62);
+    Disp_Float(5.8);
 }
 
 void APP_Start(void) {

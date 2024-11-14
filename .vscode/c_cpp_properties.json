@@ -8,19 +8,19 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/Users/mito/Documents/PlatformIO/Projects/Micro Lab - 1/include",
-                "/Users/mito/Documents/PlatformIO/Projects/Micro Lab - 1/src",
-                "/Users/mito/.platformio/packages/framework-libopencm3",
-                "/Users/mito/.platformio/packages/framework-libopencm3/include",
+                "C:/Users/pitoa/Desktop/MicroLab/Micro-Lab/include",
+                "C:/Users/pitoa/Desktop/MicroLab/Micro-Lab/src",
+                "C:/Users/pitoa/.platformio/packages/framework-libopencm3",
+                "C:/Users/pitoa/.platformio/packages/framework-libopencm3/include",
                 ""
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/Users/mito/Documents/PlatformIO/Projects/Micro Lab - 1/include",
-                    "/Users/mito/Documents/PlatformIO/Projects/Micro Lab - 1/src",
-                    "/Users/mito/.platformio/packages/framework-libopencm3",
-                    "/Users/mito/.platformio/packages/framework-libopencm3/include",
+                    "C:/Users/pitoa/Desktop/MicroLab/Micro-Lab/include",
+                    "C:/Users/pitoa/Desktop/MicroLab/Micro-Lab/src",
+                    "C:/Users/pitoa/.platformio/packages/framework-libopencm3",
+                    "C:/Users/pitoa/.platformio/packages/framework-libopencm3/include",
                     ""
                 ]
             },
@@ -31,7 +31,7 @@
                 "F_CPU=72000000L",
                 ""
             ],
-            "compilerPath": "/Users/mito/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc",
+            "compilerPath": "C:/Users/pitoa/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe",
             "compilerArgs": [
                 "-mthumb",
                 "-mcpu=cortex-m3",

@@ -27,6 +27,7 @@ typedef struct
 
 ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN x);
 void Disp_Num(uint16_t number);
+void Disp_Float(float32_t number);
 void Disp_SS(ST_SS_letters seg, uint16_t number);
 void InitMux(void);
 void Data_Show(void); 
