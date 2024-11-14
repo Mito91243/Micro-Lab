@@ -5,8 +5,11 @@ void APP_Init(void) {
 }
 
 void APP_Loop(void) {
-    //Disp_Num(62);
-    Disp_Float(5.8);
+    Disable_JTAG_Enable_GPIO();
+    //Disp_Num(624);
+    //Disp_Num(156);
+    //Disp_Float(1.64);
+    Disp_Float(15.4);
 }
 
 void APP_Start(void) {

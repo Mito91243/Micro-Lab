@@ -23,6 +23,7 @@ typedef struct
     ST_SS_letters Seg3;
     uint16_t totalvalue;
     uint8_t not_hundredth;
+    uint8_t digitpos;
 } ST_SS_MUX;
 
 ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN x);

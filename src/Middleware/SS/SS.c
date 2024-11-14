@@ -2,22 +2,24 @@
 
 ST_SS_MUX Mux;
 
+
 void InitMux()
 {
-    ST_SS_letters SevenSeg = {{EN_PORTA, 15}, {EN_PORTA, 11}, {EN_PORTA, 8}, {EN_PORTB, 15}, {EN_PORTB, 14}, {EN_PORTB, 13}, {EN_PORTB, 12}, {EN_PORTA, 12}, {EN_PORTA, 15},0};
+    ST_SS_letters SevenSeg = {{EN_PORTA, 15}, {EN_PORTA, 11}, {EN_PORTA, 8}, {EN_PORTB, 15}, {EN_PORTB, 14}, {EN_PORTB, 13}, {EN_PORTB, 12}, {EN_PORTA, 12}, {EN_PORTA, 15}, 0};
     ST_PORT_PIN Seg1 = {EN_PORTB, 8};
     ST_PORT_PIN Seg2 = {EN_PORTB, 9};
     ST_PORT_PIN Seg3 = {EN_PORTB, 3};
     ST_SS_letters x = InitSevenSegmment(SevenSeg, Seg1);
     ST_SS_letters y = InitSevenSegmment(SevenSeg, Seg2);
     ST_SS_letters z = InitSevenSegmment(SevenSeg, Seg3);
-    ST_SS_MUX tempmux = {x, y, z, 0, 0};
+    ST_SS_MUX tempmux = {x, y, z, 0, 0, 0};
     Mux = tempmux;
 }
 
 ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN COM)
 {
     seg.COM = COM;
+    CONF_GPIO(seg.COM, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.DOT, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.A, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.B, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
@@ -26,7 +28,6 @@ ST_SS_letters InitSevenSegmment(ST_SS_letters seg, ST_PORT_PIN COM)
     CONF_GPIO(seg.E, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.F, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     CONF_GPIO(seg.G, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
-    CONF_GPIO(seg.COM, (ST_PORT_PIN_CONF){OUTPUT, GEN_OUT_PUSH, OUT_SPEED_10MHZ});
     return seg;
 }
 
@@ -39,42 +40,105 @@ void Disp_Num(uint16_t number)
         Delay_ms(5); // Add a delay to control the refresh rate
     }
 }
-void Disp_Float(float32_t number)
-{
-    // Separate integer and fractional parts of the float
-    uint8_t integer_part = (uint8_t)number;
-    uint8_t fractional_part = (uint8_t)((number - integer_part) * 10); // Get one decimal place
 
+void Data_Show()
+{
+    static uint8_t current_seg = 0;
+    uint8_t not_hundredth = 0;
+    uint16_t number = Mux.totalvalue;
+    uint16_t digit1 = number / 100;       // Hundreds place
+    uint16_t digit2 = (number / 10) % 10; // Tens place
+    uint16_t digit3 = number % 10;        // Units place
+
+    if (digit1 == 0)
+    {
+        not_hundredth = 1;
+    }
+
+    // Turn off all segments and DOTs
     GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, LOW);
     GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg1.DOT, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg2.DOT, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg3.DOT, LOW);
 
-    while (1)
+    // Display the current digit
+    switch (current_seg)
     {
-        static uint8_t current_seg = 0;
-
-        // Turn off all segments
-        GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, LOW);
-        GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, LOW);
-
-        // Display the current digit with decimal handling
-        switch (current_seg)
+    case 0:
+        GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
+        if (not_hundredth == 1)
         {
-        case 0:
-            GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
-            Disp_SS(Mux.Seg1, integer_part); // Display integer part on first segment
-            GPIO_OUTPUT_LEVEL(Mux.Seg1.DOT, HIGH);
-     // Set decimal point after integer part
-            break;
-        case 1:
-            GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
-            Disp_SS(Mux.Seg2, fractional_part); // Display fractional part on second segment
+            Disp_SS(Mux.Seg1, digit2);
+            if (Mux.digitpos == 1)
+                GPIO_OUTPUT_LEVEL(Mux.Seg1.DOT, HIGH);
             break;
         }
+        Disp_SS(Mux.Seg1, digit1);
+        if (Mux.digitpos == 1)
+            GPIO_OUTPUT_LEVEL(Mux.Seg1.DOT, HIGH);
+        break;
 
-        current_seg = (current_seg + 1) % 2;
-        Delay_ms(5); // Add a delay to control the refresh rate
+    case 1:
+        GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
+        if (not_hundredth == 1)
+        {
+            Disp_SS(Mux.Seg2, digit3);
+            if (Mux.digitpos == 2)
+                GPIO_OUTPUT_LEVEL(Mux.Seg2.DOT, HIGH);
+            break;
+        }
+        Disp_SS(Mux.Seg2, digit2);
+        if (Mux.digitpos == 2)
+            GPIO_OUTPUT_LEVEL(Mux.Seg2.DOT, HIGH);
+        break;
+
+    case 2:
+        GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, HIGH);
+        if (not_hundredth == 1)
+        {
+            break;
+        }
+        Disp_SS(Mux.Seg3, digit3);
+        if (Mux.digitpos == 3)
+            GPIO_OUTPUT_LEVEL(Mux.Seg3.DOT, HIGH);
+        break;
+    }
+
+    current_seg = (current_seg + 1) % 3;
+}
+
+
+void Disp_Float(float32_t number)
+{
+    GPIO_OUTPUT_LEVEL(Mux.Seg1.DOT, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg2.DOT, LOW);
+    GPIO_OUTPUT_LEVEL(Mux.Seg3.DOT, LOW);
+
+    if (number < 10.0)
+    {
+        Mux.digitpos = 1; 
+        uint16_t intvalue = (uint16_t)(number * 100);
+        Disp_Num(intvalue);
+    }
+    else if (number >= 10.0 && number < 100.0)
+    {
+        Mux.digitpos = 2;
+        uint16_t intvalue = (uint16_t)(number * 10);
+        Disp_Num(intvalue);
     }
 }
+
+void Delay_ms(uint32_t ms)
+{
+
+    for (uint32_t i = 0; i < ms * 1000; i++)
+    {
+        __asm("nop");
+    }
+}
+
 
 void Disp_SS(ST_SS_letters seg, uint16_t number)
 {
@@ -194,66 +258,4 @@ void Disp_SS(ST_SS_letters seg, uint16_t number)
         break;
     }
     seg.value = number;
-}
-
-void Data_Show()
-{
-    static uint8_t current_seg = 0;
-    uint8_t not_hundredth = 0;
-    uint16_t number = Mux.totalvalue;
-    uint16_t digit1 = number / 100;       // Hundreds place
-    uint16_t digit2 = (number / 10) % 10; // Tens place
-    uint16_t digit3 = number % 10;        // Units place
-    if (digit1 == 0)
-    {
-        not_hundredth = 1;
-    }
-    // Turn off all segments
-    GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, LOW);
-    GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, LOW);
-    GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, LOW);
-
-    // Display the current digit
-    switch (current_seg)
-    {
-    case 0:
-        GPIO_OUTPUT_LEVEL(Mux.Seg1.COM, HIGH);
-        if (not_hundredth == 1)
-        {
-            Disp_SS(Mux.Seg1, digit2);
-            break;
-        }
-        Disp_SS(Mux.Seg1, digit1);
-        break;
-    case 1:
-        GPIO_OUTPUT_LEVEL(Mux.Seg2.COM, HIGH);
-        if (not_hundredth == 1)
-        {
-            Disp_SS(Mux.Seg2, digit3);
-            break;
-        }
-
-        Disp_SS(Mux.Seg2, digit2);
-        break;
-    case 2:
-        GPIO_OUTPUT_LEVEL(Mux.Seg3.COM, HIGH);
-        if (not_hundredth == 1)
-        {
-            break;
-        }
-
-        Disp_SS(Mux.Seg3, digit3);
-        break;
-    }
-
-    current_seg = (current_seg + 1) % 3;
-}
-
-void Delay_ms(uint32_t ms)
-{
-
-    for (uint32_t i = 0; i < ms * 1000; i++)
-    {
-        __asm("nop");
-    }
 }
