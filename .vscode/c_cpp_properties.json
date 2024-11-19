@@ -12,6 +12,7 @@
                 "C:/Users/pitoa/Desktop/MicroLab/Micro-Lab/src",
                 "C:/Users/pitoa/.platformio/packages/framework-libopencm3",
                 "C:/Users/pitoa/.platformio/packages/framework-libopencm3/include",
+                "C:/Users/pitoa/Desktop/MicroLab/Micro-Lab/.pio/libdeps/genericSTM32F103C6/Unity/src",
                 ""
             ],
             "browse": {
@@ -21,6 +22,7 @@
                     "C:/Users/pitoa/Desktop/MicroLab/Micro-Lab/src",
                     "C:/Users/pitoa/.platformio/packages/framework-libopencm3",
                     "C:/Users/pitoa/.platformio/packages/framework-libopencm3/include",
+                    "C:/Users/pitoa/Desktop/MicroLab/Micro-Lab/.pio/libdeps/genericSTM32F103C6/Unity/src",
                     ""
                 ]
             },
